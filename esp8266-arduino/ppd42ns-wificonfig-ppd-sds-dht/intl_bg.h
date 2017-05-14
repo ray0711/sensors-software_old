@@ -15,6 +15,7 @@ const char INTL_DISPLAY[] PROGMEM = "Екран";
 const char INTL_DEBUG_LEVEL[] PROGMEM = "Debug&nbsp;Level";
 const char INTL_WEITERE_APIS[] PROGMEM = "Още API";
 const char INTL_AN_EIGENE_API_SENDEN[] PROGMEM = "Изпращане към собствено API";
+const char INTL_AN_MQTT_SENDEN[] PROGMEM = "Send data to MQTT";
 const char INTL_SERVER[] PROGMEM = "Сървър"; 
 const char INTL_PFAD[] PROGMEM = "Път"; 
 const char INTL_PORT[] PROGMEM = "Порт"; 

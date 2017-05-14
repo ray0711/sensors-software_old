@@ -34,6 +34,13 @@
 #define USER_CUSTOM ""
 #define PWD_CUSTOM ""
 
+// Definition MQTT
+#define HOST_MQTT "192.168.234.1"
+#define URL_MQTT "/feinstaub"
+#define PORT_MQTT 1883
+#define USER_MQTT ""
+#define PWD_MQTT ""
+
 // Definition eigene InfluxDB
 #define HOST_INFLUXDB "api.luftdaten.info"
 #define URL_INFLUXDB "/write?db=luftdaten"

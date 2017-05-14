@@ -6,3 +6,5 @@ library.json
 TinyGPS++.cpp
 TinyGPS++.h
 builds/*.bin
+.clang_complete
+.gcc-flags.json
