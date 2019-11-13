@@ -249,3 +249,10 @@ static const char MEASUREMENT_NAME_INFLUX[] PROGMEM = "feinstaub";
 
 // Set debug level for serial output?
 #define DEBUG 3
+
+// Definition MQTT
+#define HOST_MQTT "192.168.2.1"
+#define URL_MQTT "/feinstaub"
+#define PORT_MQTT 1883
+#define USER_MQTT ""
+#define PWD_MQTT ""

@@ -169,6 +169,7 @@ const String SOFTWARE_VERSION(SOFTWARE_VERSION_STR);
 #include "./bmx280_i2c.h"
 #include "./sps30_i2c.h"
 #include "./dnms_i2c.h"
+#include <PubSubClient.h>
 
 #if defined(INTL_BG)
 #include "intl_bg.h"
@@ -319,6 +320,13 @@ namespace cfg {
 	unsigned port_custom = PORT_CUSTOM;
 	char user_custom[LEN_USER_CUSTOM] = USER_CUSTOM;
 	char pwd_custom[LEN_CFG_PASSWORD] = PWD_CUSTOM;
+
+	char host_mqtt[100] = "192.168.2.1";
+	char url_mqtt[100] = "/feinstaub/";
+	int port_mqtt = 1883;
+	char user_mqtt[100] = "";
+	char pwd_mqtt[100] = "";
+	String basic_auth_mqtt = "";
 
 	void initNonTrivials(const char* id) {
 		strcpy(cfg::current_lang, CURRENT_LANG);
@@ -573,6 +581,13 @@ template<typename T, std::size_t N> constexpr std::size_t array_num_elements(con
 #define msSince(timestamp_before) (act_milli - (timestamp_before))
 
 const char data_first_part[] PROGMEM = "{\"software_version\": \"" SOFTWARE_VERSION_STR "\", \"sensordatavalues\":[";
+
+/*****************************************************************
+/* PubSubClient                                                 *
+/*****************************************************************/
+WiFiClient espClient;
+PubSubClient client(espClient);
+
 
 /*****************************************************************
  * Debug output                                                  *
@@ -2279,6 +2294,49 @@ static void connectWifi() {
 		}
 	}
 	debug_outln_info(F("WiFi connected\nIP address: "), WiFi.localIP().toString());
+}
+
+/*****************************************************************
+/* send data to MQTT 	                                           *
+/*****************************************************************/
+unsigned long sendmqtt(const String &data, const int pin, const char *host, const int port, const char *url, const char *basic_auth_string, const String &contentType)
+{
+	unsigned long start_send = millis();
+#if defined(ESP8266)
+
+	if (!client.connected())
+	{
+		debug_outln_info(F("\nconnecting to MQTT...\n------\n\n"));
+		debug_outln_info(host);
+		client.setServer(host, port);
+
+		String clientId = "ESP8266Client-";
+		clientId += esp_chipid;
+		// Attempt to connect
+		if (client.connect(clientId.c_str()))
+		{
+			debug_outln_info(F("MQTT client connected"));
+			;
+		}
+		else
+		{
+			char str[1];
+			sprintf(str, "%d", 42);
+			debug_outln_info(F("failed, rc="));
+			debug_outln_info(str);
+		}
+	}
+	if (client.connected())
+	{
+		debug_outln_info(F("Sending data:"), data);		
+		String publish_url = url;		
+		publish_url += esp_chipid;
+		debug_outln_info(F("to:"), publish_url );
+		boolean res = client.publish(publish_url.c_str(),data.c_str());		
+		debug_outln_info(String(res));		
+	}
+#endif
+	return millis() - start_send;
 }
 
 /*****************************************************************
@@ -4104,7 +4162,7 @@ static unsigned long sendDataToOptionalApis(const String &data) {
 		send_csv(data);
 	}
 
-	if (cfg::send2custom) {
+	if (false) {
 		String data_to_send = data;
 		data_to_send.remove(0, 1);
 		String data_4_custom("{\"esp8266id\": \"");
@@ -4113,6 +4171,13 @@ static unsigned long sendDataToOptionalApis(const String &data) {
 		data_4_custom += data_to_send;
 		debug_outln_info(FPSTR(DBG_TXT_SENDING_TO), F("custom api: "));
 		sum_send_time += sendData(data_4_custom, 0, cfg::host_custom, cfg::port_custom, cfg::url_custom, cfg::ssl_custom || (cfg::port_custom == 443), basic_auth_custom.c_str(), FPSTR(TXT_CONTENT_TYPE_JSON));
+	}
+
+	if (cfg::send2custom)
+	{
+		debug_outln_info(F("## Sending to mqtt: "));
+		
+		sum_send_time += sendmqtt(data, 0, cfg::host_mqtt, cfg::port_mqtt, cfg::url_mqtt, cfg::basic_auth_mqtt.c_str(), FPSTR(TXT_CONTENT_TYPE_JSON));
 	}
 	return sum_send_time;
 }
@@ -4214,6 +4279,7 @@ void loop(void) {
 
 #if defined(ESP8266)
 	wdt_reset(); // nodemcu is alive
+	client.loop();
 #endif
 
 	if (last_micro != 0) {
