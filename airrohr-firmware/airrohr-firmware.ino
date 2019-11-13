@@ -4063,6 +4063,8 @@ static bool acquireNetworkTime() {
 static unsigned long sendDataToOptionalApis(const String &data) {
 	unsigned long sum_send_time = 0;
 
+	// mqtt
+
 	if (cfg::send2madavi) {
 		debug_outln_info(FPSTR(DBG_TXT_SENDING_TO), F("madavi.de: "));
 		sum_send_time += sendData(data, 0, HOST_MADAVI, (cfg::ssl_madavi ? 443 : 80), URL_MADAVI, cfg::ssl_madavi, "", FPSTR(TXT_CONTENT_TYPE_JSON));
